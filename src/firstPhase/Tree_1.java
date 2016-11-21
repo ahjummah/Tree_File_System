@@ -234,12 +234,3 @@ class Node<Object> {
     }
 
 }
-
-class Commands {
-
-    String command;
-
-//    public void mkdir(){
-//        System.out.println("Making directory...");
-//    }
-}

@@ -53,7 +53,7 @@ public class FileSystem {
         command = scan.nextLine();
         String rem = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
 
-        if (command.contains("cd")) {
+        if (command.contains("cd")) { //navigation
             String nextPath = command.substring(command.lastIndexOf(" ") + 1, command.length());
 
             if (nextPath.equals("..")) {
@@ -75,11 +75,14 @@ public class FileSystem {
             } else {
             }
 
-        } else if (command.equals("ls")) {
-            tree.displayChildren(tree.getNode(currentDir.replaceAll("/", "")));
-        }
+        } else if (command.equals("ls")) {//showing contents on current dir
 
-        if (command.contains("mkdir")) {
+            tree.displayChildren(tree.getNode(currentDir.replaceAll("/", "")));
+        } else if (command.contains("ls")) { //showing contents of a specific dir
+            String dirName = (command.substring(command.lastIndexOf(" ") + 1, command.length()));
+            dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
+            tree.displayChildren(tree.getNode(dirName));
+        } else if (command.contains("mkdir")) {//making directories
             String dirName = (command.substring(command.lastIndexOf(" ") + 1, command.length()));
             if (dirName.contains("/root")) {
                 String finalDirName = dirName.substring(dirName.lastIndexOf("/"));
@@ -89,20 +92,20 @@ public class FileSystem {
                 tree.addNode(dirName, tree.getNode(currentDir.replaceAll("/", "")), false);
 
             }
-        }
-        if (command.contains("rmdir")) {
+        } else if (command.contains("rmdir")) {//removing directories
             String dirName = (command.substring(command.lastIndexOf(" ") + 1, command.length()));
             if (dirName.contains("/root")) {
-                String finalDirName = dirName.substring(dirName.lastIndexOf("/")+1);
-//                System.out.println(finalDirName);
-               tree.removeNode(tree.getNode(finalDirName));
-
+                String finalDirName = dirName.substring(dirName.lastIndexOf("/") + 1);
+                tree.removeNode(tree.getNode(finalDirName));
             } else if (!tree.isChild(tree.getNode(currentDir.replaceAll("/", "")), tree.getNode(dirName))) {
                 System.out.println("No such file or directory.");
             } else {
                 tree.removeNode(tree.getNode(dirName));
-//                System.out.println("Directory found.");
             }
+        } else if (command.contains("edit")) {//creation of files
+            String fileName = (command.substring(command.lastIndexOf(" ") + 1, command.length()));
+            if(fileName.contains("/root"))
+                System.out.println("Absolute path ba");
         }
     }
 
