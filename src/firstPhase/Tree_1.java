@@ -221,16 +221,4 @@ class Node<Object> {
         return this.isFile;
     }
 
-    public boolean isRoot() {
-        if (this.parent == null) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public ArrayList getChildren() {
-        return this.children;
-    }
-
 }
