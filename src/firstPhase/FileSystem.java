@@ -90,7 +90,7 @@ public class FileSystem {
 
             tree.displayChildren(tree.getNode(currentDir.replaceAll("/", "")));
 
-        } else if (command.contains("ls")) { //showing contents of a specific dir
+        } else if (command.contains("ls ")) { //showing contents of a specific dir
 
             String dirName = (command.substring(command.lastIndexOf(" ") + 1, command.length()));
             dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
@@ -111,7 +111,7 @@ public class FileSystem {
                 tree.addNode(dirName, tree.getNode(currentDir.replaceAll("/", "")), false);
 
             }
-        } else if (command.contains("rmdir")) {//removing directories
+        } else if (command.contains("rm")) {//removing directories
 
             String dirName = (command.substring(command.lastIndexOf(" ") + 1, command.length()));
             if (dirName.contains("/root")) {
@@ -135,12 +135,43 @@ public class FileSystem {
             if (fileName.contains("/root")) {
                 String finalDirName = fileName.substring(fileName.lastIndexOf("/"));
                 String parent = (fileName.replace(finalDirName, "")).substring((fileName.replace(finalDirName, "")).lastIndexOf("/") + 1);
-                tree.addNode(finalDirName.replaceAll("/", ""), tree.getNode(parent), true);
+                Node t = tree.addNode(finalDirName.replaceAll("/", ""), tree.getNode(parent), true);
+                t.fileFormat = finalDirName.replaceAll("/", "").substring(finalDirName.lastIndexOf("."));
 
             } else {
                 tree.addNode(fileName, tree.getNode(currentDir.replaceAll("/", "")), true);
             }
+        } else if (command.contains("rn ")) {//renaming of files
+            
+            String[] fileNames = command.replaceAll("rn", "").split(" ");
+            if (fileNames.length<3) {
+                System.out.println("Error message. Missing arguments.");
+
+            } else {
+                System.out.println(fileNames[1]);
+                System.out.println(fileNames[2]);
+
+                //check if file actually exists in directory
+                if (tree.isChild(tree.getNode(currentDir.replaceAll("/", "")), tree.getNode(fileNames[1]))) {
+                    Node tmp = tree.getNode(fileNames[1]);
+                    tmp.setValue(fileNames[2]);
+                } else {
+                    System.out.println("No such file or directory");
+                }
+            }
+
         }
+        else if(command.contains("mv")){
+            String[] args = command.replace("mv", "").split(" ");
+            if(args.length<3){
+                System.out.println("Missing arguments.");
+            }
+            else{
+                
+            }
+            
+        }
+
     }
 
     private void pathStatus() {

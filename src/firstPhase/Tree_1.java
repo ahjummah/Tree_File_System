@@ -192,6 +192,7 @@ class Node<Object> {
     boolean isFile;
     Date dateCreated;
     Date dateModified;
+    String fileFormat;
 
     Node(Object data) {
         this.data = data;
@@ -211,6 +212,10 @@ class Node<Object> {
 
     public Object getValue() {
         return this.data;
+    }
+    
+    public void setValue(Object data){
+        this.data = data;
     }
 
     public Node getParent() {
