@@ -5,7 +5,15 @@
  */
 package firstPhase;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -24,14 +32,37 @@ public class FileSystem {
         initialize();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         FileSystem fs = new FileSystem();
         fs.scan = new Scanner(System.in);
-        fs.command = "";
+        ArrayList<String> commands = new ArrayList();
+        String line = "";
+        boolean fileExists = false;
+        do {
+            System.out.println("Name of input file: ");
+            String fileName = fs.scan.nextLine();
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(fileName));
+                System.out.println("File exists.");
+                fileExists = true;
+                while ((line = reader.readLine()) != null) {
+                    commands.add(line);
+                }
+            } catch (FileNotFoundException ex) {
+                fileExists = false;
+                System.out.println("File not found. Try again.");
+            }
 
-        while (!fs.command.equals("exit")) {
-            fs.waiting();
+        } while (!fileExists);
+        fs.command = "";
+        //enter function here where all the nodes will be loaded into the current file
+//        while (!fs.command.equals("exit")) {
+//            fs.waiting();
+//        }
+
+        for (int i = 0; i < commands.size(); i++) {
+            fs.waiting(commands.get(i));
         }
     }
 
@@ -39,19 +70,18 @@ public class FileSystem {
         currentDir = "/root";
         absolutePath = "/root";
         Node root = tree.addNode("root", null, false);
-        Node jessa = tree.addNode("jessa", root, false);
-        Node mae = tree.addNode("mae", root, false);
-        Node jessaFile = tree.addNode("jessaFile", jessa, false);
-
     }
 
-    private void waiting() {
+    private void waiting(String command) throws IOException {
 
         pathStatus();
         System.out.println("");
-        System.out.print("user@root: ");
-        command = scan.nextLine();
-        String rem = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
+        System.out.print("user@root: " + command);
+//        command = scan.nextLine();
+        String rem = "";
+        if (!absolutePath.equals("root")) {
+            rem = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
+        }
 
         if (command.contains("cd")) { //navigation
 
@@ -88,28 +118,48 @@ public class FileSystem {
 
         } else if (command.equals("ls")) {//showing contents on current dir
 
+            System.out.println("");
             tree.displayChildren(tree.getNode(currentDir.replaceAll("/", "")));
 
         } else if (command.contains("ls ")) { //showing contents of a specific dir
 
+            System.out.println("");
             String dirName = (command.substring(command.lastIndexOf(" ") + 1, command.length()));
             dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
             tree.displayChildren(tree.getNode(dirName));
 
         } else if (command.contains("mkdir")) {//making directories
 
-            String dirName = (command.substring(command.lastIndexOf(" ") + 1, command.length()));
-
-            if (dirName.contains("/root")) {
-
-                String finalDirName = dirName.substring(dirName.lastIndexOf("/"));
-                String parent = (dirName.replace(finalDirName, "")).substring((dirName.replace(finalDirName, "")).lastIndexOf("/") + 1);
-                tree.addNode(finalDirName.replaceAll("/", ""), tree.getNode(parent), false);
-
+            String[] com = command.replaceAll("mkdir", "").split(" ");
+            
+            if (com.length < 2) {
+                
+                System.out.println("\nMissing arguments.");
+                
             } else {
 
-                tree.addNode(dirName, tree.getNode(currentDir.replaceAll("/", "")), false);
+                String par = currentDir.replaceAll("/", "");
 
+                if (tree.isConnected(par, com[1])) {
+                    System.out.println("");
+                    System.out.println(com[1] + " already exists");
+                    
+                } else {
+
+                    String dirName = (command.substring(command.lastIndexOf(" ") + 1, command.length()));
+
+                    if (dirName.contains("/")) {
+                        
+                        String finalDirName = dirName.substring(dirName.lastIndexOf("/"));
+                        String parent = (dirName.replace(finalDirName, "")).substring((dirName.replace(finalDirName, "")).lastIndexOf("/") + 1);
+                        tree.addNode(finalDirName.replaceAll("/", ""), tree.getNode(parent), false);
+
+                    } else {
+
+                        tree.addNode(dirName, tree.getNode(currentDir.replaceAll("/", "")), false);
+
+                    }
+                }
             }
         } else if (command.contains("rm")) {//removing directories
 
@@ -121,7 +171,7 @@ public class FileSystem {
 
             } else if (!tree.isChild(tree.getNode(currentDir.replaceAll("/", "")), tree.getNode(dirName))) {
 
-                System.out.println("No such file or directory.");
+                System.out.println("\nNo such file or directory.");
 
             } else {
 
@@ -142,9 +192,9 @@ public class FileSystem {
                 tree.addNode(fileName, tree.getNode(currentDir.replaceAll("/", "")), true);
             }
         } else if (command.contains("rn ")) {//renaming of files
-            
+
             String[] fileNames = command.replaceAll("rn", "").split(" ");
-            if (fileNames.length<3) {
+            if (fileNames.length < 3) {
                 System.out.println("Error message. Missing arguments.");
 
             } else {
@@ -160,22 +210,43 @@ public class FileSystem {
                 }
             }
 
-        }
-        else if(command.contains("mv")){
+        } else if (command.contains("mv")) {
             String[] args = command.replace("mv", "").split(" ");
-            if(args.length<3){
+            if (args.length < 3) {
                 System.out.println("Missing arguments.");
+            } else {
+
             }
-            else{
-                
-            }
-            
+
         }
 
+        //add code here to implement persistence : meaning files will still be saved even after closing the program
+        //@function here will be to create a text file to store all the nodes with their children
+//        updateTree(tree.nodes);
     }
 
     private void pathStatus() {
+        System.out.println("");
         System.out.println("Absolute Path: " + absolutePath);
         System.out.println("Current Directory: " + currentDir);
+    }
+
+    private void updateTree(ArrayList<Node<Object>> nodes) throws IOException {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        FileWriter fw = new FileWriter("nodes.txt");
+        for (int i = 0; i < nodes.size(); i++) {
+            fw.write("Parent: \n");
+            fw.write((String) nodes.get(i).getValue());
+            if (!nodes.get(i).children.isEmpty()) {
+                fw.write("\nChildren:\n");
+                for (int j = 0; j < nodes.get(i).children.size(); j++) {
+                    fw.write((String) nodes.get(i).children.get(j).getValue() + "\n");
+
+                }
+            }
+            fw.write("\n");
+        }
+        fw.close();
     }
 }

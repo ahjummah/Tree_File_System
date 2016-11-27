@@ -1,0 +1,15 @@
+ls
+mkdir
+mkdir cmsc
+ls
+mkdir sp
+mkdir movies
+ls
+mkdir sp
+mkdir cmsc/cmsc11
+ls
+mkdir cmsc/cmsc142
+ls
+cd cmsc11
+cd cmsc
+ls
