@@ -97,7 +97,6 @@ public class Tree_1 {
                 Node tmp = (Node) node.children.get(i);
 
 //                System.out.println(tmp.getValue() + " children: " + tmp.children.size());
-
                 for (int j = 0; j < tmp.children.size(); j++) {
                     Node child = (Node) tmp.children.get(j);
                     nodes.remove(child);
@@ -111,7 +110,7 @@ public class Tree_1 {
         for (int i = 0; i < nodes.size(); i++) {
             nodes.get(i).children.remove(node);
         }
-        
+
         nodes.remove(node);
     }
 
@@ -119,6 +118,16 @@ public class Tree_1 {
         for (int i = 0; i < nodes.size(); i++) {
             Node tmp = nodes.get(i);
             if (tmp.getValue().equals(data)) {
+                return tmp;
+            }
+        }
+        return null;
+    }
+
+    public Node getNode2(Node parent, Object data) {
+        for (int i = 0; i < parent.children.size(); i++) {
+            Node tmp = (Node) parent.children.get(i);
+            if (tmp.data.equals(data)) {
                 return tmp;
             }
         }
@@ -155,13 +164,22 @@ public class Tree_1 {
         for (int i = 0; i < nodes.size(); i++) {
             Node<Object> node = nodes.get(i);
             System.out.println("");
-            System.out.println("Node: " + nodes.get(i).getValue()+": ");
+            System.out.println("Node: " + nodes.get(i).getValue() + ": ");
             if (!node.children.isEmpty()) {
                 System.out.println("With " + node.children.size() + " children");
                 for (int j = 0; j < node.children.size(); j++) {
                     System.out.println(node.children.get(j).getValue());
                 }
             }
+        }
+    }
+
+    void removeChild(Node parent, String child) {
+        for (int i = 0; i < parent.children.size(); i++) {
+            if (parent.children.get(i).equals(child)) {
+                parent.children.remove(i);
+            }
+
         }
     }
 
@@ -182,6 +200,7 @@ public class Tree_1 {
 
     }
 
+
 }
 
 class Node<Object> {
@@ -193,6 +212,7 @@ class Node<Object> {
     Date dateCreated;
     Date dateModified;
     String fileFormat;
+    private String name;
 
     Node(Object data) {
         this.data = data;
@@ -213,8 +233,8 @@ class Node<Object> {
     public Object getValue() {
         return this.data;
     }
-    
-    public void setValue(Object data){
+
+    public void setValue(Object data) {
         this.data = data;
     }
 
@@ -224,6 +244,20 @@ class Node<Object> {
 
     public boolean isFile() {
         return this.isFile;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getContent() {
+        return name;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setContent(String name) {
+        this.name = name;
     }
 
 }
