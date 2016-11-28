@@ -81,7 +81,7 @@ public class FileSystem {
 
     private void waiting(String command) throws IOException {
         boolean flag = false;
-//        pathStatus();
+        pathStatus();
         System.out.println("");
 //        System.out.print("user@root: " + command);
         command = scan.nextLine();
@@ -93,7 +93,7 @@ public class FileSystem {
         if (command.contains("cd")) { //navigation
             String[] args = command.split(" ");
             String nextPath = command.substring(command.lastIndexOf(" ") + 1, command.length());
-
+            System.out.println(nextPath);
             if (nextPath.equals("..")) {
 
                 if (currentDir.equals("root")) {
@@ -161,7 +161,8 @@ public class FileSystem {
                 } else {
 
                     String dirName = (command.substring(command.lastIndexOf(" ") + 1, command.length()));
-
+                    System.out.println(dirName);
+                    
                     if (dirName.contains("/")) {
 
                         String finalDirName = dirName.substring(dirName.lastIndexOf("/"));

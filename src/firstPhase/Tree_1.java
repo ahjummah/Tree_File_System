@@ -79,7 +79,7 @@ public class Tree_1 {
 
     public Node<Object> addNode(Object data, Node parent, boolean isFile) {
 
-        Node<Object> node = new Node<Object>(data);
+        Node<Object> node = new Node<Object>((String) data);
         nodes.add(node);
         node.isFile = isFile;
         if (parent != null) {
@@ -132,6 +132,15 @@ public class Tree_1 {
             }
         }
         return null;
+    }
+
+    public void search(String arg) {
+        for (int i = 0; i < nodes.size(); i++) {
+            Node tmp = nodes.get(i);
+            if (tmp.getValue().equals(arg)) {
+                System.out.println(tmp.getParent().data);
+            }
+        }
     }
 
     public boolean searchNode(Node node) {
@@ -188,24 +197,12 @@ public class Tree_1 {
             Node tmp = (Node) node.children.get(i);
             System.out.println(tmp.data);
         }
-//        for (int i = 0; i < nodes.size(); i++) {
-//            Node tmp = nodes.get(i);
-//            if (tmp.data.equals(currentPath)) {
-//                for (int j = 0; j < tmp.children.size(); j++) {
-//                    Node tmpChild = (Node) tmp.children.get(j);
-//                    System.out.println(tmpChild.getValue());
-//                }
-//            }
-//        }
-
     }
-
-
 }
 
 class Node<Object> {
 
-    Object data = null;
+    String data = null;
     ArrayList<Node<Object>> children = new ArrayList<Node<Object>>();
     Node parent = null;
     boolean isFile;
@@ -214,14 +211,14 @@ class Node<Object> {
     String fileFormat;
     private String name;
 
-    Node(Object data) {
+    Node(String data) {
         this.data = data;
 
         Date dateobj = new Date();
         dateCreated = dateobj;
     }
 
-    Node(Object data, ArrayList<Node<Object>> children) {
+    Node(String data, ArrayList<Node<Object>> children) {
         this.data = data;
         this.children = children;
     }
@@ -230,11 +227,11 @@ class Node<Object> {
         this.parent = parent;
     }
 
-    public Object getValue() {
+    public String getValue() {
         return this.data;
     }
 
-    public void setValue(Object data) {
+    public void setValue(String data) {
         this.data = data;
     }
 
