@@ -11,10 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Scanner;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -33,6 +30,7 @@ public class FileSystem_1 {
     String command;
     Node tmp;
     boolean flag = false;
+    FileWriter fw;
 
     FileSystem_1() {
         tree = new Tree_1();
@@ -46,11 +44,12 @@ public class FileSystem_1 {
         ArrayList<String> commands = new ArrayList();
         String line = "";
         boolean fileExists = false;
+        String fileName;
+
         do {
             System.out.println("Name of input file: ");
-            String fileName;
 //            = fs.scan.nextLine();
-            fileName = "test.in";
+            fileName = "mp3.in";
             try {
                 BufferedReader reader = new BufferedReader(new FileReader(fileName));
                 System.out.println("File exists.");
@@ -65,11 +64,13 @@ public class FileSystem_1 {
 
         } while (!fileExists);
         fs.command = "";
+        fs.fw = new FileWriter(fileName + ".out");
 
         //enter function here where all the nodes will be loaded into the current file
         for (int i = 0; i < commands.size(); i++) {
             fs.waiting(commands.get(i));
         }
+        fs.fw.close();
 
     }
 
@@ -83,8 +84,9 @@ public class FileSystem_1 {
         boolean flag = false;
         pathStatus();
         System.out.println("");
-//        System.out.print("user@root: " + command);
-        command = scan.nextLine();
+        System.out.print("user@root: " + command);
+        System.out.println("");
+//        command = scan.nextLine();
         String rem = "";
 
         String[] args = command.split(" ");
@@ -92,6 +94,7 @@ public class FileSystem_1 {
         if (args[0].equals("cd")) {
             if (args.length != 2) {
                 System.out.println("usage: cd <targetDirectory>");
+                fw.write("usage: cd <targetDirectory>");
             } else {
                 cdDirectory(args[1]);
             }
@@ -100,42 +103,53 @@ public class FileSystem_1 {
                 tree.displayChildren(tree.getNode(currentDir.replaceAll("/", "")));
             } else if (args.length != 2) {
                 System.out.println("usage: ls <targetDirectory> || ls <regex>");
+                fw.write(("usage: ls <targetDirectory> || ls <regex>"));
             } else {
                 listDirFiles(args[1]);
             }
         } else if (args[0].equals("mkdir")) {
-            if (args.length != 2) {
-                System.out.println("usage: mkdir <filename>");
+            if (args.length < 2) {
+                System.out.println("usage: mkdir <directory name>");
+                fw.write("usage: ls <targetDirectory> || ls <regex>");
             } else {
-                makeDir(args[1]);
+                for (int i = 1; i < args.length; i++) {
+                    makeDir(args[i]);
+                }
             }
         } else if (args[0].equals("rm")) {
-            if (args.length != 2) {
+            if (args.length < 2) {
                 System.out.println("usage: rm <targetDirectory> || rm <targetFile>");
+                fw.write("usage: rm <targetDirectory> || rm <targetFile>");
             } else {
-                removeDirFiles(args[1]);
+                for (int i = 1; i < args.length; i++) {
+                    removeDirFiles(args[i]);
+                }
             }
         } else if (args[0].equals(">")) {
             if (args.length != 2) {
                 System.out.println("usage: > <filename>");
+                fw.write("usage: > <filename>");
             } else {
                 overWriteFile(args[1]);
             }
         } else if (args[0].equals(">>")) {
             if (args.length != 2) {
                 System.out.println("usage: >> <filename>");
+                fw.write(("usage: >> <filename>"));
             } else {
                 appendFile(args[1]);
             }
         } else if (args[0].equals("edit")) {
             if (args.length != 2) {
                 System.out.println("usage: edit <filename>");
+                fw.write("usage: edit <filename>");
             } else {
                 editFile(args[1]);
             }
         } else if (args[0].equals("show")) {
             if (args.length != 2) {
                 System.out.println("usage: show <filename>");
+                fw.write("usage: show <filename>");
             } else {
                 Node parent = tree.getNode(currentDir.replaceAll("/", ""));
                 Node child = tree.getNode2(parent, args[1]);
@@ -143,23 +157,27 @@ public class FileSystem_1 {
                     System.out.println(child.getContent());
                 } else {
                     System.out.println("File does not exist.");
+                    fw.write(args[1] + " does not exist.");
                 }
             }
         } else if (args[0].equals("rn")) {
             if (args.length != 3) {
                 System.out.println("usage: rn <source_filename> <target_filename>");
+                fw.write("usage: rn <source_filename> <target_filename>");
             } else {
                 renameDirFiles(args[1], args[2]);
             }
         } else if (args[0].equals("mv")) {
             if (args.length != 3) {
                 System.out.println("usage: mv <source_file/source_directory> <target_file/target_directory>");
+                fw.write("usage: mv <source_file/source_directory> <target_file/target_directory>");
             } else {
                 moveDirFiles(args[1], args[2]);
             }
         } else if (args[0].equals("whereis")) {
             if (args.length != 2) {
                 System.out.println("usage: whereis <filename>");
+                fw.write("usage: whereis <filename>");
             } else {
                 findDirFiles(args[1]);
             }
@@ -172,7 +190,7 @@ public class FileSystem_1 {
         System.out.println("Current Directory: " + currentDir);
     }
 
-    private void cdDirectory(String arg) {
+    private void cdDirectory(String arg) throws IOException {
         if (arg.equals("..")) {
             if (currentDir.equals("/root")) {
                 System.out.println("Already in root.");
@@ -201,36 +219,40 @@ public class FileSystem_1 {
 
         } else if (!tree.isConnected(currentDir.replaceAll("/", ""), arg)) {
             if (!arg.equals("..")) {
-                System.out.println("\nNo such file or directory.");
+                System.out.println(arg + ": No such file or directory.");
+                fw.write("cd "+arg + ": No such file or directory.");
             }
         }
     }
 
     private void goUp() {
-        String rem = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
-        System.out.println(rem);
-        rem = "/" + rem;
-        absolutePath = absolutePath.replace(rem, "");
-        currentDir = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
+        if (!currentDir.equals("/root")) {
+            String rem = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
+            System.out.println(rem);
+            rem = "/" + rem;
+            absolutePath = absolutePath.replace(rem, "");
+            currentDir = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
+        }
     }
 
-    private void listDirFiles(String arg) {
+    private void listDirFiles(String arg) throws IOException {
         if (!arg.contains("*")) {
             arg = arg.substring(arg.lastIndexOf("/") + 1);
             tree.displayChildren(tree.getNode(arg));
         } else//regular expression
-        {
-            if (arg.startsWith("*")) {
+         if (arg.startsWith("*")) {
                 if (arg.endsWith("*")) {
                     for (int i = 0; i < tree.nodes.size(); i++) {
                         if (tree.nodes.get(i).data.endsWith(arg.replace("*", "")) && tree.nodes.get(i).data.startsWith(arg.replace("*", ""))) {
                             System.out.println(tree.nodes.get(i).data);
+                            fw.write(tree.nodes.get(i).data);
                         }
                     }
                 } else {
                     for (int i = 0; i < tree.nodes.size(); i++) {
                         if (tree.nodes.get(i).data.startsWith(arg.replace("*", ""))) {
                             System.out.println(tree.nodes.get(i).data);
+                            fw.write(tree.nodes.get(i).data);
                         }
                     }
                 }
@@ -238,30 +260,41 @@ public class FileSystem_1 {
                 for (int i = 0; i < tree.nodes.size(); i++) {
                     if (tree.nodes.get(i).data.endsWith(arg.replace("*", ""))) {
                         System.out.println(tree.nodes.get(i).data);
+                        fw.write(tree.nodes.get(i).data);
                     }
                 }
             }
-        }
     }
 
-    private void makeDir(String arg) {
+    private void makeDir(String arg) throws IOException {
         String par = currentDir.replaceAll("/", "");
+        if (arg.contains("../")) {
+            while (arg.contains("../")) {
+                goUp();
+                arg = arg.substring(3, arg.length());
+            }
+        }
+        System.out.println(arg);
         if (tree.isConnected(par, arg)) {
             System.out.println("");
             System.out.println(arg + " already exists");
+            fw.write(arg + " already exists");
         } else if (tree.isConnected(par, arg)) {
             System.out.println("");
             System.out.println(arg + " already exists");
+            fw.write(arg + " already exists");
 
         } else if (arg.contains("/")) {
             String finalDirName = arg.substring(arg.lastIndexOf("/"));
             String parent = (arg.replace(finalDirName, "")).substring((arg.replace(finalDirName, "")).lastIndexOf("/") + 1);
             if (tree.isConnected(parent, finalDirName)) {
                 System.out.println(arg + " already exists");
+                fw.write(arg + " already exists");
             } else {
                 tree.addNode(finalDirName.replaceAll("/", ""), tree.getNode(parent), false);
             }
-        } else if (arg.contains("/")) {
+        }
+        if (arg.contains("/")) {
             String parent = "";
             for (int i = 0; i < arg.length(); i++) {
                 if (arg.charAt(i) == '/') {
@@ -279,7 +312,7 @@ public class FileSystem_1 {
         }
     }
 
-    private void removeDirFiles(String arg) {
+    private void removeDirFiles(String arg) throws IOException {
         if (arg.contains("/root")) {
             String finalDirName = arg.substring(arg.lastIndexOf("/") + 1);
             tree.removeNode(tree.getNode(finalDirName));
@@ -299,14 +332,15 @@ public class FileSystem_1 {
             }
         } else if (!tree.isChild(tree.getNode(currentDir.replaceAll("/", "")), tree.getNode(arg))) {
 
-            System.out.println("\nNo such file or directory.");
+            System.out.println("rm "+arg + ": No such file or directory.");
+            fw.write("rm "+arg + " : No such file or directory.");
 
         } else {
             tree.removeNode(tree.getNode(arg));
         }
     }
 
-    private void overWriteFile(String arg) {
+    private void overWriteFile(String arg) throws IOException {
         String fileName = "";
         if (arg.contains("/")) {
             //absolute value code here
@@ -320,6 +354,7 @@ public class FileSystem_1 {
         Node parent = tree.getNode(par);
         if (tree.isConnected(par, fileName)) {
             System.out.println("File already exists.");
+            fw.write(fileName + " already exists");
 
         } else {
             tmp = tree.addNode(fileName, parent, true);
@@ -345,17 +380,10 @@ public class FileSystem_1 {
 
                 tmp.setContent(tf.getText());
             }
-
-            private void overWriteFile(String title, String text) throws IOException {
-                FileWriter fw = new FileWriter(title, true);
-                fw.write(text);
-                fw.close();
-            }
-
         });
     }
 
-    private void appendFile(String arg) {
+    private void appendFile(String arg) throws IOException {
         String fileName = "";
         if (arg.contains("/")) {
         } else {
@@ -367,6 +395,8 @@ public class FileSystem_1 {
         Node parent = tree.getNode(par);
         if (!tree.isConnected(par, fileName)) {
             System.out.println("No such file.");
+            fw.write(fileName + ": No such file exists");
+            
 
         } else {
             tmp = tree.addNode(fileName, parent, true);
@@ -396,7 +426,7 @@ public class FileSystem_1 {
         });
     }
 
-    private void editFile(String arg) {
+    private void editFile(String arg) throws IOException {
 
         String fileName = "";
         if (arg.contains("/")) {
@@ -409,6 +439,8 @@ public class FileSystem_1 {
         Node parent = tree.getNode(par);
         if (!tree.isConnected(par, fileName)) {
             System.out.println("No such file.");
+            fw.write(fileName + ": No such file exists");
+            
 
         } else {
             Node tmp = tree.getNode2(parent, fileName);
@@ -436,12 +468,14 @@ public class FileSystem_1 {
 
     }
 
-    private void renameDirFiles(String source, String target) {
+    private void renameDirFiles(String source, String target) throws IOException {
         if (tree.isChild(tree.getNode(currentDir.replaceAll("/", "")), tree.getNode(source))) {
             Node tmp = tree.getNode(source);
             tmp.setValue(target);
         } else {
             System.out.println("No such file or directory");
+            fw.write(source + ": No such file pr directory");
+            
         }
     }
 
@@ -458,4 +492,3 @@ public class FileSystem_1 {
         tree.search(arg);
     }
 }
-
