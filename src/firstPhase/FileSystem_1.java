@@ -82,11 +82,11 @@ public class FileSystem_1 {
 
     private void waiting(String command) throws IOException {
         boolean flag = false;
-        pathStatus();
-        System.out.println("");
-        System.out.print("user@root: " + command);
         System.out.println("");
 //        command = scan.nextLine();
+        System.out.print("user@root: " + command);
+        System.out.println("");
+
         String rem = "";
 
         String[] args = command.split(" ");
@@ -181,7 +181,17 @@ public class FileSystem_1 {
             } else {
                 findDirFiles(args[1]);
             }
+        } else if (args[0].equals("cp")) {
+            if (args.length != 3) {
+                System.out.println("usage: cp <source> <target>");
+            } else {
+                copyDirFiles(args[1], args[2]);
+            }
         }
+
+        checkCurDir();
+        pathStatus();
+
     }
 
     private void pathStatus() {
@@ -191,16 +201,7 @@ public class FileSystem_1 {
     }
 
     private void cdDirectory(String arg) throws IOException {
-        if (arg.equals("..")) {
-            if (currentDir.equals("/root")) {
-                System.out.println("Already in root.");
-            } else {
-                goUp();
-            }
-        } else if (arg.contains("/root")) { //absolute value
-            absolutePath = arg;
-            currentDir = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
-        } else if (arg.contains("../")) {
+        if (arg.contains("../")) {
             while (arg.contains("../")) {
                 goUp();
                 arg = arg.substring(3, arg.length());
@@ -211,6 +212,16 @@ public class FileSystem_1 {
             } else {
                 absolutePath = currentDir;
             }
+        }
+        if (arg.equals("..")) {
+            if (currentDir.equals("/root")) {
+                System.out.println("Already in root.");
+            } else {
+                goUp();
+            }
+        } else if (arg.contains("/root")) { //absolute value
+            absolutePath = arg;
+            currentDir = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
         } else if (tree.isConnected(currentDir.replaceAll("/", ""), arg)) {
 
             absolutePath = (absolutePath + "/" + arg);
@@ -219,8 +230,7 @@ public class FileSystem_1 {
 
         } else if (!tree.isConnected(currentDir.replaceAll("/", ""), arg)) {
             if (!arg.equals("..")) {
-                System.out.println(arg + ": No such file or directory.");
-                fw.write("cd "+arg + ": No such file or directory.");
+                noSuchFileExists(arg);
             }
         }
     }
@@ -240,10 +250,11 @@ public class FileSystem_1 {
             arg = arg.substring(arg.lastIndexOf("/") + 1);
             tree.displayChildren(tree.getNode(arg));
         } else//regular expression
-         if (arg.startsWith("*")) {
+        {
+            if (arg.startsWith("*")) {
                 if (arg.endsWith("*")) {
                     for (int i = 0; i < tree.nodes.size(); i++) {
-                        if (tree.nodes.get(i).data.endsWith(arg.replace("*", "")) && tree.nodes.get(i).data.startsWith(arg.replace("*", ""))) {
+                        if (!tree.nodes.get(i).data.endsWith(arg.replace("*", "")) && !tree.nodes.get(i).data.startsWith(arg.replace("*", "")) && tree.nodes.get(i).data.contains(arg.replace("*", ""))) {
                             System.out.println(tree.nodes.get(i).data);
                             fw.write(tree.nodes.get(i).data);
                         }
@@ -264,37 +275,34 @@ public class FileSystem_1 {
                     }
                 }
             }
+        }
     }
 
     private void makeDir(String arg) throws IOException {
         String par = currentDir.replaceAll("/", "");
         if (arg.contains("../")) {
             while (arg.contains("../")) {
-                goUp();
+//                goUp();
                 arg = arg.substring(3, arg.length());
             }
         }
         System.out.println(arg);
         if (tree.isConnected(par, arg)) {
             System.out.println("");
-            System.out.println(arg + " already exists");
-            fw.write(arg + " already exists");
+            alreadyExistsPrint(arg);
         } else if (tree.isConnected(par, arg)) {
             System.out.println("");
-            System.out.println(arg + " already exists");
-            fw.write(arg + " already exists");
+            alreadyExistsPrint(arg);
 
         } else if (arg.contains("/")) {
             String finalDirName = arg.substring(arg.lastIndexOf("/"));
             String parent = (arg.replace(finalDirName, "")).substring((arg.replace(finalDirName, "")).lastIndexOf("/") + 1);
             if (tree.isConnected(parent, finalDirName)) {
-                System.out.println(arg + " already exists");
-                fw.write(arg + " already exists");
+                alreadyExistsPrint(arg);
             } else {
                 tree.addNode(finalDirName.replaceAll("/", ""), tree.getNode(parent), false);
             }
-        }
-        if (arg.contains("/")) {
+        } else if (arg.contains("/")) {
             String parent = "";
             for (int i = 0; i < arg.length(); i++) {
                 if (arg.charAt(i) == '/') {
@@ -332,9 +340,7 @@ public class FileSystem_1 {
             }
         } else if (!tree.isChild(tree.getNode(currentDir.replaceAll("/", "")), tree.getNode(arg))) {
 
-            System.out.println("rm "+arg + ": No such file or directory.");
-            fw.write("rm "+arg + " : No such file or directory.");
-
+            noSuchFileExists(arg);
         } else {
             tree.removeNode(tree.getNode(arg));
         }
@@ -353,9 +359,7 @@ public class FileSystem_1 {
         String par = currentDir.replaceAll("/", "");
         Node parent = tree.getNode(par);
         if (tree.isConnected(par, fileName)) {
-            System.out.println("File already exists.");
-            fw.write(fileName + " already exists");
-
+            alreadyExistsPrint(arg);
         } else {
             tmp = tree.addNode(fileName, parent, true);
 
@@ -394,9 +398,7 @@ public class FileSystem_1 {
         String par = currentDir.replaceAll("/", "");
         Node parent = tree.getNode(par);
         if (!tree.isConnected(par, fileName)) {
-            System.out.println("No such file.");
-            fw.write(fileName + ": No such file exists");
-            
+            noSuchFileExists(arg);
 
         } else {
             tmp = tree.addNode(fileName, parent, true);
@@ -438,9 +440,7 @@ public class FileSystem_1 {
         String par = currentDir.replaceAll("/", "");
         Node parent = tree.getNode(par);
         if (!tree.isConnected(par, fileName)) {
-            System.out.println("No such file.");
-            fw.write(fileName + ": No such file exists");
-            
+            noSuchFileExists(arg);
 
         } else {
             Node tmp = tree.getNode2(parent, fileName);
@@ -473,9 +473,7 @@ public class FileSystem_1 {
             Node tmp = tree.getNode(source);
             tmp.setValue(target);
         } else {
-            System.out.println("No such file or directory");
-            fw.write(source + ": No such file pr directory");
-            
+            noSuchFileExists(source);
         }
     }
 
@@ -490,5 +488,23 @@ public class FileSystem_1 {
 
     private void findDirFiles(String arg) {
         tree.search(arg);
+    }
+
+    private void alreadyExistsPrint(String arg) {
+        System.out.println(arg + " already exists.");
+    }
+
+    private void noSuchFileExists(String arg) {
+        System.out.println(arg + ": no such file or directory");
+    }
+
+    private void checkCurDir() {
+        if (!currentDir.startsWith("/")) {
+            currentDir = "/" + currentDir;
+        }
+    }
+
+    private void copyDirFiles(String source, String target) {
+        
     }
 }
